@@ -1,0 +1,6 @@
+*.class
+bin/
+out/
+.vscode/
+res/progreso.txt
+res/ranking.txt
