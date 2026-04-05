@@ -29,15 +29,30 @@ public class GestorRanking {
     };
 
     // Variables globales para rastrear el uso de ayudas en la sesión actual
-    public static int usosAyuda = 0, usosFantasma = 0, penalizacionFantasmaTotal = 0;
+    // ENCAPSULAMIENTO
+    private static int usosAyuda = 0;
+    private static int usosFantasma = 0;
+    private static int penalizacionFantasmaTotal = 0;
 
     // Métodos para registrar y resetear estadísticas de la partida
     public static void resetearPartida() { usosAyuda = 0; usosFantasma = 0; penalizacionFantasmaTotal = 0; }
     public static void registrarUsoAyuda() { usosAyuda++; }
+    
+    // SOBRECARGA 
+    public static void registrarUsoAyuda(int n) { usosAyuda += n; }
+
     public static void registrarPenalizacionFantasma() { usosFantasma++; penalizacionFantasmaTotal += 200; }
 
-    // Obtención de datos desde el archivo de progreso
-    public static int obtenerNivelMaximo() { return Integer.parseInt(leerLinea(0, "1")); }
+    // MANEJO DE EXCEPCIONES ESPECÍFICO
+    public static int obtenerNivelMaximo() { 
+        try {
+            return Integer.parseInt(leerLinea(0, "1")); 
+        } catch (NumberFormatException e) {
+            System.err.println("Error: Formato de nivel maximo invalido.");
+            return 1;
+        }
+    }
+    
     public static String obtenerLogrosIDs_Static() { return leerLinea(1, ""); }
     private static String obtenerNivelesDificil() { return leerLinea(2, ""); }
     private static String obtenerNivelesSinAyuda() { return leerLinea(3, ""); }
@@ -59,7 +74,9 @@ public class GestorRanking {
                 String[] d = l.split(",");
                 if (d.length == 3) registros.add(d);
             }
-        } catch (Exception e) {}
+        } catch (IOException e) {
+            System.err.println("Error al leer el ranking: " + e.getMessage());
+        }
         registros.sort((a, b) -> Integer.compare(Integer.parseInt(b[0]), Integer.parseInt(a[0])));
         return registros;
     }
@@ -96,7 +113,6 @@ public class GestorRanking {
         return (obtenidos.size() > totalAntes) ? "¡NUEVO LOGRO DESBLOQUEADO!" : "";
     }
 
-    // Detecta si se debe anunciar el desbloqueo de un nuevo nivel
     public static String obtenerAnuncioProgreso(int nivelCompletado) {
         int actual = obtenerNivelMaximo();
         if (nivelCompletado == actual && actual < 10) {
@@ -106,7 +122,6 @@ public class GestorRanking {
         return "";
     }
 
-    // Persiste los datos de progreso actualizados
     public static int actualizarProgreso(int nivelCompletado) {
         int actual = obtenerNivelMaximo();
         int nuevoMax = Math.max(actual, nivelCompletado + 1);
@@ -116,6 +131,13 @@ public class GestorRanking {
         }
         return -1;
     }
+
+    // GETTERS Y SETTERS 
+
+    public static int getUsosAyuda() { return usosAyuda; }
+    public static void setUsosAyuda(int n) { usosAyuda = n; }
+    public static int getUsosFantasma() { return usosFantasma; }
+    public static int getPenalizacionFantasmaTotal() { return penalizacionFantasmaTotal; }
 
     // Funciones auxiliares para manejo de archivos y conversión de datos
     private static void check(int id, Set<Integer> lista) { if (!lista.contains(id)) lista.add(id); }
@@ -127,21 +149,25 @@ public class GestorRanking {
             String l = "";
             for (int i = 0; i <= n; i++) l = br.readLine();
             return (l != null) ? l : defecto;
-        } catch (Exception e) { return defecto; }
+        } catch (IOException e) { return defecto; }
     }
 
     public static void guardarTodo(int nivel, String logros, String dif, String sinA) {
         new File("res").mkdir(); 
         try (PrintWriter pw = new PrintWriter(new FileWriter(RUTA_PROGRESO))) {
             pw.println(nivel); pw.println(logros); pw.println(dif); pw.println(sinA);
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            System.err.println("No se pudo guardar el progreso.");
+        }
     }
 
     private static Set<Integer> cargarSet(String d) {
         Set<Integer> s = new HashSet<>();
         if (d != null && !d.isEmpty()) {
             for (String v : d.split(",")) {
-                if (!v.trim().isEmpty()) s.add(Integer.parseInt(v.trim()));
+                try {
+                    if (!v.trim().isEmpty()) s.add(Integer.parseInt(v.trim()));
+                } catch (NumberFormatException e) {}
             }
         }
         return s;

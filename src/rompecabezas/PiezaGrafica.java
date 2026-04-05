@@ -6,8 +6,17 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 
-public class PiezaGrafica extends JLabel {
+// ABSTRACCIÓN
+abstract class ComponenteGrafico extends JLabel {
+    // ATRIBUTO PROTEGIDO 
+    protected boolean activo = true;
+    public abstract void refrescar(); 
+}
+
+// HERENCIA 
+public class PiezaGrafica extends ComponenteGrafico {
     // Coordenadas objetivo, dimensiones y estado
+    // ENCAPSULAMIENTO 
     private int xObj, yObj, wR, hR, angulo = 0;
     private boolean encajada = false;
     private Point offset;
@@ -15,9 +24,10 @@ public class PiezaGrafica extends JLabel {
     private Timer timerAnimacion;
     private double paso = 0;
 
+    // El constructor se queda EXACTAMENTE igual que el tuyo para no romper nada
     public PiezaGrafica(BufferedImage img, int x, int y, int w, int h) {
         this.imagenOriginal = img; this.xObj = x; this.yObj = y; this.wR = w; this.hR = h;
-        this.setBorder(null); this.angulo = 0; actualizarImagenRotada();
+        this.setBorder(null); this.angulo = 0; refrescar();
         this.setLocation(30 + xObj, 30 + yObj);
 
         // Control de click y rotación
@@ -54,11 +64,15 @@ public class PiezaGrafica extends JLabel {
 
                         if (recPieza.intersects(recCuadro)) return; 
                     }
-                    setLocation(nX, nY);
+                    setPosicion(nX, nY); // Cambiado para usar SOBRECARGA abajo
                 }
             }
         });
     }
+
+    // SOBRECARGA DE MÉTODOS 
+    public void setPosicion(int x, int y) { this.setLocation(x, y); }
+    public void setPosicion(Point p) { this.setLocation(p.x, p.y); }
 
     // Animación suave de mezcla inicial
     public void iniciarAnimacionMezcla(int xMeta, int yMeta, int angFinal, VentanaJuego v) {
@@ -67,7 +81,7 @@ public class PiezaGrafica extends JLabel {
         timerAnimacion = new Timer(20, e -> {
             paso += 0.07;
             if (paso >= 1.0) {
-                setLocation(xMeta, yMeta); angulo = angFinal; actualizarImagenRotada();
+                setLocation(xMeta, yMeta); angulo = angFinal; refrescar();
                 timerAnimacion.stop(); timerAnimacion = null; v.notificarPiezaLista();
             } else {
                 double pro = 1 - Math.pow(1 - paso, 3);
@@ -78,10 +92,11 @@ public class PiezaGrafica extends JLabel {
     }
 
     // Lógica de rotación en 90 grados
-    public void rotar() { if (!encajada) { angulo = (angulo + 90) % 360; actualizarImagenRotada(); } }
+    public void rotar() { if (!encajada) { angulo = (angulo + 90) % 360; refrescar(); } }
 
-    // Genera la nueva imagen rotada usando AffineTransform
-    private void actualizarImagenRotada() {
+    // SOBREESCRITURA
+    @Override
+    public void refrescar() {
         int aC = (angulo == 90 || angulo == 270) ? hR : wR, hC = (angulo == 90 || angulo == 270) ? wR : hR;
         this.setSize(aC, hC);
         BufferedImage r = new BufferedImage(aC, hC, BufferedImage.TYPE_INT_ARGB);
@@ -99,10 +114,12 @@ public class PiezaGrafica extends JLabel {
     }
 
     public void forzarEncaje(int oX, int oY) {
-        angulo = 0; actualizarImagenRotada(); setLocation(oX+xObj, oY+yObj); encajada = true;
+        angulo = 0; refrescar(); setPosicion(oX+xObj, oY+yObj); encajada = true;
         setBorder(BorderFactory.createLineBorder(new Color(50, 255, 50), 2));
         if (getParent() != null) getParent().setComponentZOrder(this, getParent().getComponentCount()-1);
     }
 
+    // GETTERS/SETTERS
     public boolean isEncajada() { return encajada; }
+    public int getAngulo() { return angulo; }
 }

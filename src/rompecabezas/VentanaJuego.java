@@ -99,12 +99,12 @@ public class VentanaJuego extends JPanel {
             }
         };
         cuadroTexto.setOpaque(false); cuadroTexto.setBounds(960, 30, 430, 280); 
-        lblNombreSitio = new JLabel(nombresNiveles[nivelInicial-1].toUpperCase(), SwingConstants.CENTER);
+        lblNombreSitio = new JLabel(nombresNiveles[nivelActualCargado-1].toUpperCase(), SwingConstants.CENTER);
         lblNombreSitio.setForeground(new Color(255, 215, 0));
         lblNombreSitio.setFont(new Font("Verdana", Font.BOLD, 24));
         lblNombreSitio.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
         cuadroTexto.add(lblNombreSitio, BorderLayout.NORTH);
-        lblDatoCurioso = new JLabel("<html><body style='padding: 20px; text-align: center;'>" + datosInformativos[nivelInicial-1] + "</body></html>");
+        lblDatoCurioso = new JLabel("<html><body style='padding: 20px; text-align: center;'>" + datosInformativos[nivelActualCargado-1] + "</body></html>");
         lblDatoCurioso.setForeground(new Color(220, 220, 220));
         lblDatoCurioso.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         cuadroTexto.add(lblDatoCurioso, BorderLayout.CENTER);
@@ -253,8 +253,10 @@ public class VentanaJuego extends JPanel {
 
         StringBuilder sb = new StringBuilder("<html><div style='text-align: center; color: white; font-family: Segoe UI;'>");
         sb.append("<span style='font-size: 20px;'>PUNTUACION: <b>").append(puntos).append(" PTS</b></span><br><br>");
-        sb.append("Ayudas: ").append(GestorRanking.usosAyuda).append(" (-").append(GestorRanking.usosAyuda * 500).append(" pts)<br>");
-        sb.append("Fantasma: ").append(GestorRanking.usosFantasma).append(" (-").append(GestorRanking.penalizacionFantasmaTotal).append(" pts)<br><br>");
+        
+        // Uso de Getters para cumplir con Encapsulamiento (tuve que modificar lo ya hecho)
+        sb.append("Ayudas: ").append(GestorRanking.getUsosAyuda()).append(" (-").append(GestorRanking.getUsosAyuda() * 500).append(" pts)<br>");
+        sb.append("Fantasma: ").append(GestorRanking.getUsosFantasma()).append(" (-").append(GestorRanking.getPenalizacionFantasmaTotal()).append(" pts)<br><br>");
         
         if (!anuncioProgreso.isEmpty()) sb.append("<b style='color: #3498DB;'>[!] ").append(anuncioProgreso).append("</b><br>");
         if (!anuncioLogro.isEmpty()) sb.append("<b style='color: #2ECC71;'>(*) ").append(anuncioLogro).append("</b><br>");
